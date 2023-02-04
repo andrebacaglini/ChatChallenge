@@ -6,10 +6,11 @@
         .build();
 
     // Create a function that the hub can call to broadcast messages.
-    connection.on('broadcastMessage', function (name, message) {
+    connection.on('broadcastMessage', function (chatMessageObj) {
+        console.log(chatMessageObj);
         // Html encode display name and message.
-        var encodedName = name;
-        var encodedMsg = message;
+        var encodedName = chatMessageObj.userName;
+        var encodedMsg = chatMessageObj.chatMessageText;
         // Add the message to the page.
         var liElement = document.createElement('li');
         liElement.innerHTML = '<strong>' + encodedName + '</strong>:&nbsp;&nbsp;' + encodedMsg;

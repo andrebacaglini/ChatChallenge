@@ -16,7 +16,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.Password.RequireNonAlphanumeric = false)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddRazorPages(opt =>
@@ -27,8 +27,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddMassTransit(x =>
 {
-    x.SetKebabCaseEndpointNameFormatter();
-
+    x.SetKebabCaseEndpointNameFormatter();    
     x.AddSignalRHub<ChatHub>();
 
     x.UsingRabbitMq((context, cfg) =>
