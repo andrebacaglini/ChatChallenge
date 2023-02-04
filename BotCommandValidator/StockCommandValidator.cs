@@ -47,7 +47,6 @@ namespace BotCommandValidator
             }
             catch (ArgumentException e)
             {
-
                 return new ValidationCommandResponse(false)
                 {
                     ErrorMessage = "It was not possible to extract the commands from message. Please check the bot logs.",
