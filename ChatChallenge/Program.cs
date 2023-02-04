@@ -1,4 +1,8 @@
 using ChatChallenge.Data;
+using ChatWebApp.Consumer;
+using ChatWebApp.Hubs;
+using MassTransit;
+using MassTransit.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,13 +10,43 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddRazorPages();
+
+builder.Services.AddRazorPages(opt =>
+    opt.Conventions.AuthorizePage("/ChatPage")
+);
+
+builder.Services.AddSignalR();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+
+    x.AddSignalRHub<ChatHub>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", x =>
+        {
+            x.Username("admin");
+            x.Password("admin");
+        });
+
+
+        cfg.ConfigureEndpoints(context);
+    });
+
+    // This will be competing consumer if the Mvc scales horizontally, which is fine because the backplane is enabled with MT
+    x.AddConsumersFromNamespaceContaining<BroadcastMessageConsumer>();
+});
+
 
 var app = builder.Build();
 
@@ -36,6 +70,12 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<ChatHub>("/chat");
+});
+
 app.MapRazorPages();
+
 
 app.Run();
