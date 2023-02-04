@@ -14,6 +14,11 @@ namespace ChatWebApp.Consumer
             _hubContext = hubContext;
         }
 
+        /// <summary>
+        /// Consumes the queue and send the message to the SignalR chat.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task Consume(ConsumeContext<ChatMessage> context)
         {
             // sends the data consumed from rabbitmq to the SignalR

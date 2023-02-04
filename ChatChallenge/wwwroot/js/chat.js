@@ -1,5 +1,5 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
-    
+
     // Start the connection.
     var connection = new signalR.HubConnectionBuilder()
         .withUrl('/chat')
@@ -9,11 +9,13 @@
     connection.on('broadcastMessage', function (chatMessageObj) {
         console.log(chatMessageObj);
         // Html encode display name and message.
+        var messageDateTime = new Date(chatMessageObj.messageDateTime).toISOString().slice(0, 19).replace(/-/g, "/").replace("T", " ");
         var encodedName = chatMessageObj.userName;
-        var encodedMsg = chatMessageObj.chatMessageText;
+        var encodedMsg = chatMessageObj.messageText;
+
         // Add the message to the page.
         var liElement = document.createElement('li');
-        liElement.innerHTML = '<strong>' + encodedName + '</strong>:&nbsp;&nbsp;' + encodedMsg;
+        liElement.innerHTML = '<strong>' + messageDateTime + ' | ' + encodedName + '</strong>:&nbsp;&nbsp;' + encodedMsg;
         document.getElementById('messagesList').appendChild(liElement);
     });
 

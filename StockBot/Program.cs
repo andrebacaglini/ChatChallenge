@@ -1,5 +1,8 @@
+using BotCommandValidator;
+using BotCommandValidator.Interfaces;
 using Company.Consumers;
 using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 
@@ -16,6 +19,7 @@ namespace StockBot
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
+
                     services.AddMassTransit(x =>
                     {
                         //example kebab-case
@@ -24,6 +28,7 @@ namespace StockBot
                         //This looks for consumers under the namespace over the StockBotConsumer class.
                         x.AddConsumersFromNamespaceContaining<StockBotConsumer>();
 
+                        //Configuration to user RabbitMQ
                         x.UsingRabbitMq((context, cfg) =>
                         {
                             cfg.Host("localhost", "/", x =>
@@ -35,6 +40,8 @@ namespace StockBot
                             cfg.ConfigureEndpoints(context);
                         });
                     });
+
+                    services.AddTransient<IStockCommandValidator, StockCommandValidator>();
                 });
     }
 }

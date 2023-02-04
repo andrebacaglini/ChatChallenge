@@ -1,11 +1,9 @@
-﻿using System.Security.Principal;
-
-namespace Contracts
+﻿namespace Contracts
 {
     public record ChatMessage
     {
         public string UserName { get; set; } = string.Empty;
-        public string ChatMessageText { get; init; } = string.Empty;
-        public DateTime ChatMessageDateTime { get; init; }
+        public string MessageText { get; set; } = string.Empty;
+        public DateTime MessageDateTime { get; set; }
     }
 }
