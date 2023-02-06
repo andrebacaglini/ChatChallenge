@@ -1,5 +1,3 @@
-using BotCommandValidator;
-using BotCommandValidator.Interfaces;
 using ChatChallenge.Data;
 using ChatWebApp.Consumer;
 using ChatWebApp.Hubs;

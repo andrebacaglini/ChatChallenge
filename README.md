@@ -127,7 +127,9 @@ For example:
 
 With time running out and the constant increase in my anxiety, I decided to take a step back.
 
-In the ChatHub class, where I send messages to the chat, I decided to send a message to the bot's queue also, and of course, at least I did a basic validation to see if the message should be sent to the bot's queue or not.
+The chat doesn't need to use a message broker. So I removed the MassTransit SignalR dependency.
+
+Then, in the ChatHub class, where I send messages to the chat, I decided to publish a message to the bot's queue. And I refactored the consumer class to listen to consume the messages sent by the bot.
 
     For sure it's not the appropriate 'fix' for this issue. 
     Probably some simple silly configuration could make it work as I thought before but at that moment I hadn't had more time to try other stuff.
