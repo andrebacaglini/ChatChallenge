@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using ChatWebApp.Data.Model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatChallenge.Data
@@ -9,5 +10,7 @@ namespace ChatChallenge.Data
             : base(options)
         {
         }
+
+        public DbSet<ChatMessage> ChatMessages { get; set; }
     }
 }
