@@ -4,7 +4,6 @@ using ChatChallenge.Data;
 using ChatWebApp.Consumer;
 using ChatWebApp.Hubs;
 using MassTransit;
-using MassTransit.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +29,6 @@ builder.Services.AddSignalR();
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
-    x.AddSignalRHub<ChatHub>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -47,9 +45,6 @@ builder.Services.AddMassTransit(x =>
     // This will be competing consumer if the Mvc scales horizontally, which is fine because the backplane is enabled with MT
     x.AddConsumersFromNamespaceContaining<BroadcastMessageConsumer>();
 });
-
-builder.Services.AddTransient<IStockCommandValidator, StockCommandValidator>();
-
 
 var app = builder.Build();
 

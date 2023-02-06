@@ -3,7 +3,6 @@ namespace StockBot.Consumers
     using BotCommandValidator.Interfaces;
     using Contracts;
     using MassTransit;
-    using MassTransit.Logging;
     using Microsoft.Extensions.Logging;
     using StockBot.Util;
     using System;
@@ -54,7 +53,7 @@ namespace StockBot.Consumers
                 }
                 else
                 {
-                    await SendMessageAsync(NO_STOCK_COMMAND_MESSAGE);
+                    _logger.LogInformation(NO_STOCK_COMMAND_MESSAGE);
                 }
             }
             catch (Exception e)
