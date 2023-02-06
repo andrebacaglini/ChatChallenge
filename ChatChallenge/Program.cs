@@ -1,5 +1,5 @@
-using ChatChallenge.Data;
 using ChatWebApp.Consumer;
+using ChatWebApp.Data;
 using ChatWebApp.Hubs;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
@@ -30,7 +30,7 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", x =>
+        cfg.Host("rabbit", "/", x =>
         {
             x.Username("admin");
             x.Password("admin");
@@ -45,6 +45,8 @@ builder.Services.AddMassTransit(x =>
 });
 
 var app = builder.Build();
+
+app.Services.GetService<ApplicationDbContext>().Database.Migrate();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

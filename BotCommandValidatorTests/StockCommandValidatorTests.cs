@@ -1,7 +1,8 @@
-﻿using BotCommandValidator.Interfaces;
+﻿using BotCommandValidator;
+using BotCommandValidator.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace BotCommandValidator.Tests
+namespace BotCommandValidatorTests
 {
     [TestClass()]
     public class StockCommandValidatorTests

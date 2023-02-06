@@ -1,4 +1,4 @@
-﻿using ChatChallenge.Data;
+﻿using ChatWebApp.Data;
 using ChatWebApp.Data.Model;
 using ChatWebApp.Util;
 using Contracts;
@@ -60,7 +60,7 @@ namespace ChatWebApp.Hubs
         public async Task RetriveChatHistory()
         {
             var history = _context.ChatMessages.OrderByDescending(x => x.MessageDateTime).AsNoTracking().Take(50).ToList();
-            await Clients.All.SendAsync("loadChatHistory", history.Reverse<Data.Model.ChatMessage>());
+            await Clients.Caller.SendAsync("loadChatHistory", history.Reverse<Data.Model.ChatMessage>());
         }
     }
 }

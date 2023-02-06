@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace ChatChallenge.Data
+namespace ChatWebApp.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {

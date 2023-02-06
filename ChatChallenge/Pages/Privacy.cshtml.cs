@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace ChatChallenge.Pages
+namespace ChatWebApp.Pages
 {
     public class PrivacyModel : PageModel
     {
