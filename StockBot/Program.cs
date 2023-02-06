@@ -1,9 +1,9 @@
 using BotCommandValidator;
 using BotCommandValidator.Interfaces;
-using Company.Consumers;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StockBot.Consumers;
 using System.Threading.Tasks;
 
 namespace StockBot

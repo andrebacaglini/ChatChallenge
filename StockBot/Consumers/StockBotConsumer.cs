@@ -1,4 +1,4 @@
-namespace Company.Consumers
+namespace StockBot.Consumers
 {
     using BotCommandValidator.Interfaces;
     using Contracts;
@@ -19,6 +19,9 @@ namespace Company.Consumers
     public class StockBotConsumer : IConsumer<BotMessage>
     {
         private const string OOPS_MESSAGE = "Oops! Something goes wrong... Sorry.";
+        private const string BOT_USERNAME = "StockBot";
+        private const string NO_STOCK_COMMAND_MESSAGE = "Looks like your message doesn't have a stock command.";
+        private const string GETTING_INFO_MESSAGE = "Hey! Let me get this info for you! Please wait a sec..";
         private readonly ILogger<StockBotConsumer> _logger;
         private readonly IBus _bus;
         private readonly IStockCommandValidator _stockCommandValidator;
@@ -32,45 +35,62 @@ namespace Company.Consumers
 
         public async Task Consume(ConsumeContext<BotMessage> context)
         {
-            string botMessage = OOPS_MESSAGE;
             try
             {
                 if (_stockCommandValidator.MessageHasStockCommands(context.Message.MessageText))
                 {
-                    await _bus.Publish(new ChatMessage { UserName = "StockBot", MessageText = $"Hey! Let me get this info for you! Please wait a sec..", MessageDateTime = DateTime.Now });
+
+                    await SendMessageAsync(GETTING_INFO_MESSAGE);
+
                     var validationResponse = _stockCommandValidator.ValidateCommand(context.Message.MessageText);
                     if (validationResponse.IsValid)
                     {
-                        using HttpClient client = new();
                         foreach (var command in validationResponse.Commands)
                         {
-                            var stockCode = command.Split('=')[1];
-                            var response = await client.GetAsync($"https://stooq.com/q/l/?s={stockCode}&f=sd2t2ohlcv&h&e=csv");
-                            var csvStream = await response.Content.ReadAsStreamAsync();
-                            var stock = StockDataReader.ReadStockDataFromCSV(csvStream);
-                            
-                            if(stock is null)
-                            {
-                                botMessage = $"Looks like I can't retrieve the stock information for the stock code: {stockCode}. Did you wrote the stock code correctly?";
-                            }
-                            else
-                            {
-                                botMessage = $"{stock.Symbol} quote is ${stock.Close} per share.";
-                            }
-                            await _bus.Publish(new ChatMessage { UserName = "StockBot", MessageText = botMessage, MessageDateTime = DateTime.Now });
+                            var stockInfoMessage = await GetStocksInfoAsync(command);
+                            await SendMessageAsync(stockInfoMessage);
                         }
                     }
                 }
                 else
                 {
-                    await _bus.Publish(new ChatMessage { UserName = "StockBot", MessageText = $"Looks like your message doesn't have a stock command.", MessageDateTime = DateTime.Now });
+                    await SendMessageAsync(NO_STOCK_COMMAND_MESSAGE);
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e,"Unexpected error");
-                await _bus.Publish(new ChatMessage { UserName = "StockBot", MessageText = botMessage, MessageDateTime = DateTime.Now });
-            }            
+                _logger.LogError(e, "An error occured when trying to get stock information.");
+                await SendMessageAsync(OOPS_MESSAGE);
+            }
+        }
+
+        private static async Task<string> GetStocksInfoAsync(string command)
+        {
+            using HttpClient client = new();
+            var botMessage = string.Empty;
+
+            var stockCode = command.Split('=')[1];
+
+            var response = await client.GetAsync($"https://stooq.com/q/l/?s={stockCode}&f=sd2t2ohlcv&h&e=csv");
+            var csvStream = await response.Content.ReadAsStreamAsync();
+
+            var stock = StockDataReader.ReadStockDataFromCSV(csvStream);
+
+            if (stock is null)
+            {
+                botMessage = $"Looks like I can't retrieve the stock information for the stock code: {stockCode}. Did you wrote the stock code correctly?";
+            }
+            else
+            {
+                botMessage = $"{stock.Symbol} quote is ${stock.Close} per share.";
+            }
+
+            return botMessage;
+        }
+
+        private async Task SendMessageAsync(string message)
+        {
+            await _bus.Publish(new ChatMessage { UserName = BOT_USERNAME, MessageText = message, MessageDateTime = DateTime.Now });
         }
     }
 }

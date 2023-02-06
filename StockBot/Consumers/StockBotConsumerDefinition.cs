@@ -1,4 +1,4 @@
-namespace Company.Consumers
+namespace StockBot.Consumers
 {
     using MassTransit;
     using System;
