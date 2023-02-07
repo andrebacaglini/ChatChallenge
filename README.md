@@ -49,7 +49,7 @@ functionalities.
 
 So basically, in my opinion, this challenge is asking for a web chat application where multiple authenticated users can enter a chat room and send messages.
 
-Also, they can send the command '`/stock=stock_code`', for example: '`/stock=aapl.us`', to see the amount per share of the stock.
+Also, they can send the command `/stock=stock_code`, for example: `/stock=aapl.us`, to see the amount per share of the stock.
 
 This command should be handled by a **DECOUPLED** bot that should be able to identify the command, consume the given API, extract the data needed from a CSV file received, and finally send back a message to the chat.
 
