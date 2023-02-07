@@ -10,6 +10,7 @@ services:
       depends_on:
         - sqlserver
         - rabbit    
+      container_name: chat
 
     bot:
       build:
@@ -18,6 +19,7 @@ services:
       depends_on:
         - sqlserver
         - rabbit
+      container_name: stocks-bot
 
     sqlserver:
       image: mcr.microsoft.com/mssql/server
