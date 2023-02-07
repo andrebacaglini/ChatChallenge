@@ -44,7 +44,7 @@ functionalities.
 
 ## How about the solution?
 
-    My thoughts on this so be kind to understand what I was thinking and feeling. 
+    My thoughts on this, so be kind to understand what I was thinking and feeling. 
     Not everyone knows everything or learns it in the same way.
 
 So basically, in my opinion, this challenge is asking for a web chat application where multiple authenticated users can enter a chat room and send messages.
@@ -104,11 +104,11 @@ First I would need the RabbitMQ running. So I decided to work with Docker and cr
     PS: I like Docker but I'm not an expert on it. 
     This is a very useful tool when I want to run a service without the need to install it on my machine and test some other stuff.
 
-I confess that my experience with RabbitMQ at the moment of this challenge is low. But reading the documentation and looking at some examples on the internet I found the MassTransit Framework.
+I confess that my experience with RabbitMQ at the moment of this challenge is low. But reading the documentation and looking at some examples on the internet I found the [MassTransit Framework](https://masstransit-project.com/).
 
-It is a free, open-source distributed application framework for .NET (<https://masstransit-project.com/>).
+    It is a free, open-source distributed application framework for .NET.
 
-Reading the docs and the examples I found a SignalR example with RabbitMQ (<https://masstransit-project.com/advanced/signalr/sample.html#sample-signalr>) and **boom!** That was everything I needed for the whole challenge!
+Reading the docs and the examples I found a [SignalR example with RabbitMQ](https://masstransit-project.com/advanced/signalr/sample.html#sample-signalr) and **boom!** That was everything I needed for the whole challenge!
 
 I just need to configure the chat and the bot consumes the same queue and it's done!
 
@@ -131,11 +131,15 @@ The chat doesn't need to use a message broker. So I removed the MassTransit Sign
 
 Then, in the ChatHub class, where I send messages to the chat, I decided to publish a message to the bot's queue. And I refactored the consumer class to listen to consume the messages sent by the bot.
 
+Unfortunately, I had to leave the Contracts layer for as common use for chat and bot to exchange messages because of MassTransit.
+
     For sure it's not the appropriate 'fix' for this issue. 
     Probably some simple silly configuration could make it work as I thought before but at that moment I hadn't had more time to try other stuff.
     And besides the current solution is not an appropriate fix, it worked as expected.
 
 This part consumed most of my time and the rest of it I spent refactoring and trying to accomplish some bonus requirements.
+
+At most finals, I decided to dockerize everything to make it easier to run without too much configuration (God thanks Visual Studio for the amazing support!).
 
 ---
 
@@ -145,12 +149,11 @@ Finally, the final solution and stack used were:
 
 For the chat:
 
-* ChatWebApp, built with ASP.NET Core Web App + Identity + EF Core + SignalR + MassTransit.
-* Uses local SQLServer DB to store the users and the messages.
+* ChatWebApp, built with ASP.NET Core Web App + Identity + EF Core + SignalR + MassTransit + Docker.
 
 For the bot:
 
-* StockBot, built with Console App + MassTransit.
+* StockBot, built with Console App + MassTransit + Docker
 
 Auxiliary Class Libraries:
 
@@ -159,3 +162,19 @@ Auxiliary Class Libraries:
 * BotCommandValidatorTests, a basic test project with MSTest2 to cover some command validator scenarios.
 
 All are built with .NET 6.
+
+For the database:
+
+* A [SQL Server](https://hub.docker.com/_/microsoft-mssql-server) docker container.
+
+For the message broker:
+
+* A [RabbitMQ](https://hub.docker.com/_/rabbitmq) docker container.
+
+## How to run?
+
+Since the project is dockerized, I believe the easiest way to run it on your machine is by having the [latest docker version](https://www.docker.com/) installed, then:
+
+1) Clone this repo to your local machine
+2) In the terminal or prompt, navigate to the folder where you cloned the repo.
+3) Type `docker-compose up` and hit enter.
