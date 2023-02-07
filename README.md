@@ -99,7 +99,7 @@ So there was the need for a third item!
 
 First I would need the RabbitMQ running. So I decided to work with Docker and create a container with the management interface.
 
-`docker run -d --hostname rabbit --name some-rabbit -p 15672:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin rabbitmq:3-management`
+    docker run -d --hostname rabbit --name some-rabbit -p 15672:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin rabbitmq:3-management
 
     PS: I like Docker but I'm not an expert on it. 
     This is a very useful tool when I want to run a service without the need to install it on my machine and test some other stuff.
@@ -178,3 +178,9 @@ Since the project is dockerized, I believe the easiest way to run it on your mac
 1) Clone this repo to your local machine
 2) In the terminal or prompt, navigate to the folder where you cloned the repo.
 3) Type `docker-compose up` and hit enter.
+4) Access http://localhost:8080
+
+The Chat page is restricted so you will need to create a user in order to enter the chat.
+Once in the chat page, you can start sending messages and ask the bot for a stock share by using the stock command. For example: `stock=mstf.us`.
+
+If everything is running ok (:crossed_fingers:) the bot should respond if the data you asked.
