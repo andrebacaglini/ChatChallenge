@@ -1,9 +1,9 @@
 using ChatWebApp.Consumer;
 using ChatWebApp.Data;
 using ChatWebApp.Hubs;
-using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,29 +24,41 @@ builder.Services.AddRazorPages(opt =>
 
 builder.Services.AddSignalR();
 
-builder.Services.AddMassTransit(x =>
+builder.Services.AddSingleton<IConnectionFactory, ConnectionFactory>((provider) =>
 {
-    x.SetKebabCaseEndpointNameFormatter();
-
-    x.UsingRabbitMq((context, cfg) =>
+    var connectionFactory = new ConnectionFactory
     {
-        cfg.Host("rabbit", "/", x =>
-        {
-            x.Username("admin");
-            x.Password("admin");
-        });
-
-
-        cfg.ConfigureEndpoints(context);
-    });
-
-    // This will be competing consumer if the Mvc scales horizontally, which is fine because the backplane is enabled with MT
-    x.AddConsumersFromNamespaceContaining<BroadcastMessageConsumer>();
+        HostName = "172.17.0.2",
+        VirtualHost = "/",
+        UserName = "admin",
+        Password = "admin",
+        DispatchConsumersAsync = true
+    };
+    return connectionFactory;
 });
+
+builder.Services.AddSingleton((provider) =>
+{
+    var connectionFactory = provider.GetRequiredService<IConnectionFactory>();    
+    var model = connectionFactory.CreateConnection().CreateModel();
+    model.ExchangeDeclare("chat", ExchangeType.Direct, true, true);
+    model.QueueDeclare("messages", true, false, true);
+    model.QueueBind("messages", "chat", "response");
+    return model;
+
+});
+
+builder.Services.AddHostedService<BotConsumer>();
+
 
 var app = builder.Build();
 
-app.Services.GetService<ApplicationDbContext>().Database.Migrate();
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetService<ApplicationDbContext>().Database.Migrate();
+}
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

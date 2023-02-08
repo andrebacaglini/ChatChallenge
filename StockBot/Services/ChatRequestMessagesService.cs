@@ -1,47 +1,70 @@
-namespace StockBot.Consumers
+namespace StockBot.Services
 {
     using BotCommandValidator.Interfaces;
-    using Contracts;
-    using MassTransit;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json;
+    using RabbitMQ.Client;
+    using RabbitMQ.Client.Events;
+    using StockBot.Model;
     using StockBot.Util;
     using System;
     using System.Net.Http;
+    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// Bot Consumer.
-    /// It listen to his own queue and respond on chat queue.
-    /// PS: MassTransit manage the queues by the type of the object.
-    /// So BotMessage comes to stock-bot queue and ChatMessage goes to broadcast-message queue.
-    /// </summary>
-    public class StockBotConsumer : IConsumer<BotMessage>
+    public class ChatRequestMessagesService : BackgroundService
     {
         private const string OOPS_MESSAGE = "Oops! Something goes wrong... Sorry.";
         private const string BOT_USERNAME = "StockBot";
         private const string NO_STOCK_COMMAND_MESSAGE = "Looks like your message doesn't have a stock command.";
         private const string GETTING_INFO_MESSAGE = "Hey! Let me get this info for you! Please wait a sec..";
-        private readonly ILogger<StockBotConsumer> _logger;
-        private readonly IBus _bus;
+
+        private readonly ILogger<ChatRequestMessagesService> _logger;
+        private readonly IModel _model;
         private readonly IStockCommandValidator _stockCommandValidator;
 
-        public StockBotConsumer(ILogger<StockBotConsumer> logger, IBus bus, IStockCommandValidator stockCommandValidator)
+        public ChatRequestMessagesService(ILogger<ChatRequestMessagesService> logger, IModel model, IStockCommandValidator stockCommandValidator)
         {
             _logger = logger;
-            _bus = bus;
+            _model = model;
             _stockCommandValidator = stockCommandValidator;
+
         }
 
-        public async Task Consume(ConsumeContext<BotMessage> context)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             try
             {
-                if (_stockCommandValidator.MessageHasStockCommands(context.Message.MessageText))
-                {
+                var asyncConsumer = new AsyncEventingBasicConsumer(_model);
+                _model.BasicConsume("messages", true, asyncConsumer);
+                asyncConsumer.Received += ConsumeChatMessages;
 
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Worker running...");
+                    await Task.Delay(5000, stoppingToken);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "An error occured when trying to get stock information.");
+                SendMessageAsync(OOPS_MESSAGE);
+            }
+        }
+
+        private async Task ConsumeChatMessages(object sender, BasicDeliverEventArgs eventArgs)
+        {
+            if (eventArgs.RoutingKey == "request")
+            {
+                var message = JsonConvert.DeserializeObject<ChatMessage>(Encoding.UTF8.GetString(eventArgs.Body.ToArray()));
+
+                if (_stockCommandValidator.MessageHasStockCommands(message.MessageText))
+                {
                     await SendMessageAsync(GETTING_INFO_MESSAGE);
 
-                    var validationResponse = _stockCommandValidator.ValidateCommand(context.Message.MessageText);
+                    var validationResponse = _stockCommandValidator.ValidateCommand(message.MessageText);
                     if (validationResponse.IsValid)
                     {
                         foreach (var command in validationResponse.Commands)
@@ -56,11 +79,7 @@ namespace StockBot.Consumers
                     _logger.LogInformation(NO_STOCK_COMMAND_MESSAGE);
                 }
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "An error occured when trying to get stock information.");
-                await SendMessageAsync(OOPS_MESSAGE);
-            }
+
         }
 
         private static async Task<string> GetStocksInfoAsync(string command)
@@ -89,7 +108,16 @@ namespace StockBot.Consumers
 
         private async Task SendMessageAsync(string message)
         {
-            await _bus.Publish(new ChatMessage { UserName = BOT_USERNAME, MessageText = message, MessageDateTime = DateTime.Now });
+            try
+            {
+                var botMessage = new ChatMessage { UserName = BOT_USERNAME, MessageText = message, MessageDateTime = DateTime.Now };
+                _model.BasicPublish("chat", "response", null, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(botMessage)));
+                await Task.Yield();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Something goes wrong when SendMessageAsync");
+            }
         }
     }
 }

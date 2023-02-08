@@ -1,27 +1,28 @@
 ﻿using ChatWebApp.Data;
 using ChatWebApp.Data.Model;
 using ChatWebApp.Util;
-using Contracts;
-using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
+using System.Text;
 
 namespace ChatWebApp.Hubs
 {
     public class ChatHub : Hub
     {
-        private readonly IBus _bus;
         private readonly ApplicationDbContext _context;
+        private readonly IModel _model;
 
-        public ChatHub(IBus bus, ApplicationDbContext context)
+        public ChatHub(ApplicationDbContext context, IModel model)
         {
-            _bus = bus;
             _context = context;
+            _model = model;
         }
 
         public async Task Send(string userName, string message)
         {
-            var chatMessage = new Contracts.ChatMessage
+            var chatMessage = new ChatMessage
             {
                 UserName = userName,
                 MessageText = message,
@@ -32,7 +33,7 @@ namespace ChatWebApp.Hubs
 
             if (!CommandIdentifier.MessageHasStockCommands(message))
             {
-                await _context.ChatMessages.AddAsync(new Data.Model.ChatMessage
+                await _context.ChatMessages.AddAsync(new ChatMessage
                 {
                     UserName = chatMessage.UserName,
                     MessageText = chatMessage.MessageText,
@@ -43,12 +44,7 @@ namespace ChatWebApp.Hubs
             }
             else
             {
-                tasks.Add(_bus.Publish(new BotMessage
-                {
-                    UserName = userName,
-                    MessageText = message,
-                    MessageDateTime = DateTime.Now
-                }));
+                _model.BasicPublish("chat", "request", null, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(chatMessage)));
             }
 
             // Send the message from client to signalR

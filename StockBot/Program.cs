@@ -1,9 +1,9 @@
 using BotCommandValidator;
 using BotCommandValidator.Interfaces;
-using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using StockBot.Consumers;
+using RabbitMQ.Client;
+using StockBot.Services;
 using System.Threading.Tasks;
 
 namespace StockBot
@@ -19,29 +19,32 @@ namespace StockBot
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-
-                    services.AddMassTransit(x =>
+                    services.AddSingleton<IConnectionFactory, ConnectionFactory>((provider) =>
                     {
-                        //example kebab-case
-                        x.SetKebabCaseEndpointNameFormatter();
-
-                        //This looks for consumers under the namespace over the StockBotConsumer class.
-                        x.AddConsumersFromNamespaceContaining<StockBotConsumer>();
-
-                        //Configuration to user RabbitMQ
-                        x.UsingRabbitMq((context, cfg) =>
+                        var connectionFactory = new ConnectionFactory
                         {
-                            cfg.Host("rabbit", "/", x =>
-                            {
-                                x.Username("admin");
-                                x.Password("admin");
-                            });
+                            HostName = "172.17.0.2",
+                            VirtualHost = "/",
+                            UserName = "admin",
+                            Password = "admin",
+                            DispatchConsumersAsync = true
+                        };
+                        return connectionFactory;
+                    });
 
-                            cfg.ConfigureEndpoints(context);
-                        });
+                    services.AddSingleton((provider) =>
+                    {
+                        var connectionFactory = provider.GetRequiredService<IConnectionFactory>();
+                        var model = connectionFactory.CreateConnection().CreateModel();
+                        model.ExchangeDeclare("chat", ExchangeType.Direct, true, true);
+                        model.QueueDeclare("messages", true, false, true);
+                        model.QueueBind("messages", "chat", "request");
+                        return model;
                     });
 
                     services.AddTransient<IStockCommandValidator, StockCommandValidator>();
+
+                    services.AddHostedService<ChatRequestMessagesService>();
                 });
     }
 }
