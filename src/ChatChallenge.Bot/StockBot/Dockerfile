@@ -5,18 +5,18 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["StockBot/StockBot.csproj", "StockBot/"]
-COPY ["BotCommandValidator/BotCommandValidator.csproj", "BotCommandValidator/"]
-COPY ["Contracts/Contracts.csproj", "Contracts/"]
-RUN dotnet restore "StockBot/StockBot.csproj"
+COPY ["ChatChallenge.Bot/StockBot/ChatChallenge.StockBot.csproj", "ChatChallenge.Bot/StockBot/"]
+COPY ["ChatChallenge.Common/Contracts/ChatChallenge.Contracts.csproj", "ChatChallenge.Common/Contracts/"]
+COPY ["ChatChallenge.Bot/BotCommandValidator/ChatChallenge.BotCommandValidator.csproj", "ChatChallenge.Bot/BotCommandValidator/"]
+RUN dotnet restore "ChatChallenge.Bot/StockBot/ChatChallenge.StockBot.csproj"
 COPY . .
-WORKDIR "/src/StockBot"
-RUN dotnet build "StockBot.csproj" -o /app/build
+WORKDIR "/src/ChatChallenge.Bot/StockBot"
+RUN dotnet build "ChatChallenge.StockBot.csproj" -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "StockBot.csproj" -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ChatChallenge.StockBot.csproj" -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "StockBot.dll"]
+ENTRYPOINT ["dotnet", "ChatChallenge.StockBot.dll"]
