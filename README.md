@@ -131,7 +131,7 @@ The chat doesn't need to use a message broker. So I removed the MassTransit Sign
 
 Then, in the ChatHub class, where I send messages to the chat, I decided to publish a message to the bot's queue. And I refactored the consumer class to listen to consume the messages sent by the bot.
 
-Unfortunately, I had to leave the Contracts layer for as common use for chat and bot to exchange messages because of MassTransit.
+Unfortunately, I had to leave the Contracts layer for common use for chat and bot to exchange messages because of MassTransit.
 
     For sure it's not the appropriate 'fix' for this issue. 
     Probably some simple silly configuration could make it work as I thought before but at that moment I hadn't had more time to try other stuff.
@@ -178,9 +178,10 @@ Since the project is dockerized, I believe the easiest way to run it on your mac
 1) Clone this repo to your local machine
 2) In the terminal or prompt, navigate to the folder where you cloned the repo.
 3) Type `docker-compose up` and hit enter.
-4) Access http://localhost:8080
+4) Access <http://localhost:8080>
 
-The Chat page is restricted so you will need to create a user in order to enter the chat.
-Once in the chat page, you can start sending messages and ask the bot for a stock share by using the stock command. For example: `stock=mstf.us`.
+The Chat page is restricted so you will need to create a user to enter the chat.
+
+Once on the chat page, you can start sending messages and ask the bot for a stock share by using the stock command. For example `stock=mstf.us`.
 
 If everything is running ok (:crossed_fingers:) the bot should respond if the data you asked.
