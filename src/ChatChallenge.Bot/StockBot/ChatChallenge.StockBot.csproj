@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ChatChallenge.Common\Contracts\ChatChallenge.Contracts.csproj" />
     <ProjectReference Include="..\BotCommandValidator\ChatChallenge.BotCommandValidator.csproj" />
-    <ProjectReference Include="..\Contracts\ChatChallenge.Contracts.csproj" />
   </ItemGroup>
 </Project>

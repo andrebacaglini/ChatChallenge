@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Contracts\ChatChallenge.Contracts.csproj" />
+    <ProjectReference Include="..\..\ChatChallenge.Common\Contracts\ChatChallenge.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
