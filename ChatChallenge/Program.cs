@@ -46,7 +46,13 @@ builder.Services.AddMassTransit(x =>
 
 var app = builder.Build();
 
-app.Services.GetService<ApplicationDbContext>().Database.Migrate();
+using var scope = app.Services.CreateScope();
+var dbcontext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+if (dbcontext != null && !dbcontext.Database.EnsureCreated())
+{
+    dbcontext.Database.Migrate();
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
