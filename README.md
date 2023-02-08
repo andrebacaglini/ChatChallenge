@@ -149,17 +149,17 @@ Finally, the final solution and stack used were:
 
 For the chat:
 
-* ChatWebApp, built with ASP.NET Core Web App + Identity + EF Core + SignalR + MassTransit + Docker.
+* ChatChallenge.WebApp, built with ASP.NET Core Web App + Identity + EF Core + SignalR + MassTransit + Docker.
 
 For the bot:
 
-* StockBot, built with Console App + MassTransit + Docker
+* ChatChallenge.StockBot, built with Console App + MassTransit + Docker
 
 Auxiliary Class Libraries:
 
-* Contracts, a class library to define the message types for the projects.
-* BotCommandValidator, a class library with some business rules validations, checks, and extractions for the `/stock=stock_code` command.
-* BotCommandValidatorTests, a basic test project with MSTest2 to cover some command validator scenarios.
+* ChatChallenge.Contracts, a class library to define the message types for the projects.
+* ChatChallenge.BotCommandValidator, a class library with some business rules validations, checks, and extractions for the `/stock=stock_code` command.
+* ChatChallenge.BotCommandValidatorTests, a basic test project with MSTest2 to cover some command validator scenarios.
 
 All are built with .NET 6.
 
