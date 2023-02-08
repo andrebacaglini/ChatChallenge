@@ -12,12 +12,12 @@ namespace ChatWebApp.Hubs
     public class ChatHub : Hub
     {
         private readonly ApplicationDbContext _context;
-        private readonly IModel _model;
+        private readonly IConnectionFactory _connectionFactory;
 
-        public ChatHub(ApplicationDbContext context, IModel model)
+        public ChatHub(ApplicationDbContext context, IConnectionFactory connectionFactory)
         {
             _context = context;
-            _model = model;
+            _connectionFactory = connectionFactory;
         }
 
         public async Task Send(string userName, string message)
@@ -44,7 +44,10 @@ namespace ChatWebApp.Hubs
             }
             else
             {
-                _model.BasicPublish("chat", "request", null, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(chatMessage)));
+                using var connection = _connectionFactory.CreateConnection();
+                using var channel = connection.CreateModel();
+                channel.ExchangeDeclare("chat", ExchangeType.Direct, true, true);
+                channel.BasicPublish("chat", "request", null, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(chatMessage)));
             }
 
             // Send the message from client to signalR

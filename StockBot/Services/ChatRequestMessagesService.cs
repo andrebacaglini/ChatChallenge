@@ -22,23 +22,29 @@ namespace StockBot.Services
         private const string GETTING_INFO_MESSAGE = "Hey! Let me get this info for you! Please wait a sec..";
 
         private readonly ILogger<ChatRequestMessagesService> _logger;
-        private readonly IModel _model;
         private readonly IStockCommandValidator _stockCommandValidator;
+        private readonly IConnectionFactory _connectionFactory;
 
-        public ChatRequestMessagesService(ILogger<ChatRequestMessagesService> logger, IModel model, IStockCommandValidator stockCommandValidator)
+        public ChatRequestMessagesService(ILogger<ChatRequestMessagesService> logger, IStockCommandValidator stockCommandValidator, IConnectionFactory connectionFactory)
         {
             _logger = logger;
-            _model = model;
             _stockCommandValidator = stockCommandValidator;
-
+            _connectionFactory = connectionFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             try
             {
-                var asyncConsumer = new AsyncEventingBasicConsumer(_model);
-                _model.BasicConsume("messages", true, asyncConsumer);
+                using var connection = _connectionFactory.CreateConnection();
+                using var channel = connection.CreateModel();
+
+                channel.ExchangeDeclare("chat", ExchangeType.Direct, true, true);
+                channel.QueueDeclare("chat-messages", true, false, true);
+                channel.QueueBind("chat-messages", "chat", "request");
+
+                var asyncConsumer = new AsyncEventingBasicConsumer(channel);
+                channel.BasicConsume("chat-messages", true, asyncConsumer);
                 asyncConsumer.Received += ConsumeChatMessages;
 
                 while (!stoppingToken.IsCancellationRequested)
@@ -50,7 +56,7 @@ namespace StockBot.Services
             catch (Exception e)
             {
                 _logger.LogError(e, "An error occured when trying to get stock information.");
-                SendMessageAsync(OOPS_MESSAGE);
+                await SendMessageAsync(OOPS_MESSAGE);
             }
         }
 
@@ -111,8 +117,12 @@ namespace StockBot.Services
             try
             {
                 var botMessage = new ChatMessage { UserName = BOT_USERNAME, MessageText = message, MessageDateTime = DateTime.Now };
-                _model.BasicPublish("chat", "response", null, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(botMessage)));
+                using var connection = _connectionFactory.CreateConnection();
+                using var channel = connection.CreateModel();
+                channel.ExchangeDeclare("chat", ExchangeType.Direct, true, true);
+                channel.BasicPublish("chat", "response", null, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(botMessage)));
                 await Task.Yield();
+
             }
             catch (Exception e)
             {

@@ -32,16 +32,6 @@ namespace StockBot
                         return connectionFactory;
                     });
 
-                    services.AddSingleton((provider) =>
-                    {
-                        var connectionFactory = provider.GetRequiredService<IConnectionFactory>();
-                        var model = connectionFactory.CreateConnection().CreateModel();
-                        model.ExchangeDeclare("chat", ExchangeType.Direct, true, true);
-                        model.QueueDeclare("messages", true, false, true);
-                        model.QueueBind("messages", "chat", "request");
-                        return model;
-                    });
-
                     services.AddTransient<IStockCommandValidator, StockCommandValidator>();
 
                     services.AddHostedService<ChatRequestMessagesService>();

@@ -37,17 +37,6 @@ builder.Services.AddSingleton<IConnectionFactory, ConnectionFactory>((provider) 
     return connectionFactory;
 });
 
-builder.Services.AddSingleton((provider) =>
-{
-    var connectionFactory = provider.GetRequiredService<IConnectionFactory>();    
-    var model = connectionFactory.CreateConnection().CreateModel();
-    model.ExchangeDeclare("chat", ExchangeType.Direct, true, true);
-    model.QueueDeclare("messages", true, false, true);
-    model.QueueBind("messages", "chat", "response");
-    return model;
-
-});
-
 builder.Services.AddHostedService<BotConsumer>();
 
 
