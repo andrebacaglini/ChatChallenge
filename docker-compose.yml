@@ -4,7 +4,7 @@ services:
     web:
       build:
         context: .
-        dockerfile: /ChatChallenge/Dockerfile
+        dockerfile: /src/ChatChallenge.Web/ChatChallenge/Dockerfile
       ports:
         - "8080:80"
       depends_on:
@@ -15,7 +15,7 @@ services:
     bot:
       build:
         context: .
-        dockerfile: /StockBot/Dockerfile
+        dockerfile: /src/ChatChallenge.Bot/StockBot/Dockerfile
       depends_on:
         - sqlserver
         - rabbit
