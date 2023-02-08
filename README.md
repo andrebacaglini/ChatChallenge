@@ -177,8 +177,14 @@ Since the project is dockerized, I believe the easiest way to run it on your mac
 
 1) Clone this repo to your local machine
 2) In the terminal or prompt, navigate to the folder where you cloned the repo.
-3) Type `docker-compose up` and hit enter.
+3) Type `docker-compose up` and hit enter. (It can take a little to Docker will download the required stuff and build the images)
 4) Access <http://localhost:8080>
+
+    PS: Problems you could face:
+
+    -- On the first try, Docker could take a little time to download and build what is needed.
+    -- If you could not access the chat page (the app is unreachable). Please stop the current terminal/prompt and go to step 3 again.
+    -- Docker doesn't wait for the other containers to be ready. In other words, when the chat container comes up maybe the database container is not ready yet. I tried to use depends_on condition but without success.
 
 The Chat page is restricted so you will need to create a user to enter the chat.
 

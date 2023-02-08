@@ -3,22 +3,22 @@ version: "3.4"
 services:
     web:
       build:
-        context: .
-        dockerfile: /src/ChatChallenge.Web/ChatChallenge/Dockerfile
+        context: ./src
+        dockerfile: /ChatChallenge.Web/ChatChallenge.WebApp/Dockerfile
       ports:
         - "8080:80"
       depends_on:
         - sqlserver
-        - rabbit    
+        - rabbit        
       container_name: chat
 
     bot:
       build:
-        context: .
-        dockerfile: /src/ChatChallenge.Bot/StockBot/Dockerfile
+        context: ./src
+        dockerfile: /ChatChallenge.Bot/ChatChallenge.StockBot/Dockerfile
       depends_on:
         - sqlserver
-        - rabbit
+        - rabbit        
       container_name: stocks-bot
 
     sqlserver:
@@ -28,7 +28,7 @@ services:
         - ACCEPT_EULA=Y
         - SA_PASSWORD=Q!w2e3r4
       ports:
-        - "1433:1433"
+        - "1433:1433"      
     
     rabbit:
       image: rabbitmq:3-management
